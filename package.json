@@ -1,26 +1,27 @@
 {
-  "name": "bobtail-deep-cell",
+  "name": "firetail",
   "version": "0.1.0",
   "description": "",
   "main": "index.js",
-  "homepage": "https://github.com/bobtail-dev/bobtail-deep-cell#readme",
+  "homepage": "https://github.com/bobtail-dev/firetail#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bobtail-dev/bobtail-deep-cell.git"
+    "url": "git+https://github.com/bobtail-dev/firetail.git"
   },
   "keywords": [
     "bobtail",
+    "firebase",
     "reactive programming",
     "FRP"
   ],
   "author": "Richard Mehlinger",
-  "license": "MIT",
+  "license": "Apache 2",
   "bugs": {
-    "url": "https://github.com/bobtail-dev/bobtail-deep-cell/issues"
+    "url": "https://github.com/bobtail-dev/firetail/issues"
   },
   "scripts": {
     "build": "npm run clean && npm run babel && npm run minify",
-    "babel": "babel src/main.js > dist/main.js",
+    "babel": "babel src/main.js --out-file dist/main.js --source-maps",
     "clean": "rm -rf dist && mkdir dist",
     "minify": "uglifyjs -mc --source-map --screw-ie8 -o dist/main.min.js dist/main.js",
     "typescript": "",
@@ -37,6 +38,11 @@
     "uglify-es": "^3.0.23"
   },
   "dependencies": {
+    "bobtail-json-cell": "^0.2.0",
+    "bobtail-rx": "^2.1.1",
     "underscore": "^1.8.3"
+  },
+  "peerDependencies": {
+    "firebase": "^4.0.0"
   }
 }

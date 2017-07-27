@@ -2,14 +2,9 @@
   "presets": ["es2015"],
   "plugins": [[
     "transform-es2015-modules-umd", {
-      "globals": {
-        "bobtail-rx": "rx",
-        "underscore": "_"
-      },
+      "globals": {"bobtail-rx": "rx"},
       "exactGlobals": true
     }
   ]],
   "moduleId": "bobtail-deep-cell"
 }
-
-

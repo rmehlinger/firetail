@@ -36,13 +36,13 @@
     "jasmine": "^2.6.0",
     "jasmine-core": "^2.5.2",
     "jquery": "^3.2.1",
-    "mockfirebase": "^0.12.0",
     "typescript": "^2.1.6",
     "uglify-es": "^3.0.23"
   },
   "dependencies": {
     "bobtail-json-cell": "^0.2.2",
-    "bobtail-rx": "^2.1.1"
+    "bobtail-rx": "^2.1.1",
+    "lodash.set": "^4.3.2"
   },
   "peerDependencies": {
     "firebase": "^4.0.0"

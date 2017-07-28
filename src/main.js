@@ -2,7 +2,6 @@ import {autoSub, bind, snap} from 'bobtail-rx';
 import {ObsJsonCell, SrcJsonCell} from 'bobtail-json-cell';
 
 let valueEvent = {value(data){
-  console.warn(this.data, data.val());
   this._update(data.val());
 }};
 let listEvents = {
@@ -17,14 +16,11 @@ let listEvents = {
   }
 };
 
-function identity(x) {return x;}
-
 class FireTailBase extends ObsJsonCell {
-  constructor(refFn, xformFn=identity, init=null, events=valueEvent) {
+  constructor(refFn, init=null, events=valueEvent) {
     // super(typeof refFn === 'function' ? refFn: () => refFn, init);
     super(init);
     this.refFn = refFn;
-    this.xformFn = xformFn;  // used for e.g.
     this.events = events;
     this.refCell = bind(this.refFn);
     autoSub(this.refCell.onSet, ([o, n]) => {
@@ -57,44 +53,30 @@ class DepFireTailBase extends FireTailBase {
   }
 }
 
-export class DepFireTailCell extends FireTailBase {
+export class DepFireTailCell extends DepFireTailBase {
   constructor(refFn, init=null) {
-    super(refFn, identity, init, valueEvent);
-  }
-}
-
-export class DepFireTailList extends DepFireTailCell {
-  constructor(refFn, xformFn, init) {
-    super(refFn, xformFn, init, listEvents);
+    super(refFn, init, valueEvent);
   }
 }
 
 export class RWFireTailBase extends FireTailBase {
-  constructor(refFn, xformFn, init, events) {
-    super(init);
-    initFireTailObj.call(this, refFn, xformFn, events);
+  constructor(refFn, init, events) {
+    super(refFn, init, events);
   }
   setProperty (getPath, basePath, obj, prop, val) {
-    // super.setProperty(getPath, basePath, obj, prop, val);
-    this.refCell.raw().update({[getPath(prop).join('/')]: val});
+    super.setProperty(getPath, basePath, obj, prop, val);
+    this.refCell.raw().update({[getPath(prop).slice(1).join('/')]: val});
+    return true;
   }
   deleteProperty (getPath, basePath, obj, prop) {
-    // super.deleteProperty(getPath, basePath, obj, prop);
-    this.refCell.raw().remove(getPath(prop).join('/'));
-  }
-  push (elem) {
-    return this.refCell.raw().push(elem);
+    super.deleteProperty(getPath, basePath, obj, prop);
+    this.refCell.raw().update({[getPath(prop).slice(1).join('/')]: null});
+    return true;
   }
 }
 
 export class RWFireTailCell extends RWFireTailBase {
   constructor(refFn, init) {
-    super(refFn, identity, init, valueEvent);
-  }
-}
-
-export class RWFireTailArray extends RWFireTailBase {
-  constructor (refFn, init, xformFn) {
-    super(refFn, xformFn, init, valueEvent);
+    super(refFn, init, valueEvent);
   }
 }

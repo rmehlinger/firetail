@@ -1,8 +1,8 @@
 {
   "name": "firetail",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "",
-  "main": "index.js",
+  "main": "dist/main.js",
   "homepage": "https://github.com/bobtail-dev/firetail#readme",
   "repository": {
     "type": "git",
@@ -15,7 +15,7 @@
     "FRP"
   ],
   "author": "Richard Mehlinger",
-  "license": "Apache 2",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/bobtail-dev/firetail/issues"
   },

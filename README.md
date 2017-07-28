@@ -9,8 +9,6 @@ It provides read-only objects which can be bound to a Firebase ref, either as ce
 (which subscribes to the `value` event) or as lists (which subscribe to the `child_added`, `child_removed`, 
 and `child_changed` events). Both types come in readonly and read-write variants.
 
-### push
-
 # Demo
 
 # Project Status

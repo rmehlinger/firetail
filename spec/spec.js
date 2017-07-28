@@ -1,5 +1,5 @@
 jasmine.CATCH_EXCEPTIONS = false;
-import {DepFireTailCell} from '../src/main.js';
+import {DepFireTailCell, DepFireTailList, RWFireTailCell, RWFireTailList} from '../src/main.js';
 import * as firebase from 'firebase';
 import * as rx from 'bobtail-rx';
 
@@ -14,7 +14,7 @@ let app = firebase.initializeApp({
 });
 let db = app.database();
 
-// Error.stackTraceLimit = Infinity;
+Error.stackTraceLimit = 10;
 
 
 describe('DepFireTailCell', () => {
@@ -42,7 +42,7 @@ describe('DepFireTailCell', () => {
       Joe: {id: 0, age: 50},
       Fred: {id: 1, age: 40},
       Bob: {id: 2, age: 60}
-    })
+    });
   });
   it('should update when Firebase ref is deleted', () => {
     fieldVal().remove();
@@ -53,3 +53,86 @@ describe('DepFireTailCell', () => {
     expect(peopleCell.data).toEqual({"Maple": {id: 0, age: 2}});
   });
 });
+
+describe('DepFireTailList', () => {
+  let fieldVal, fieldKey, peopleCell, people, cats;
+
+  beforeEach(() => {
+    fieldKey = rx.cell("people");
+    fieldVal = () => db.ref(fieldKey.get());
+    people = db.ref('people');
+    people.set({});
+    cats = db.ref('cats');
+    cats.set({});
+    db.ref('people').push({name: "Joe", id: 0, age: 50});
+    db.ref('cats').push({name: "Maple", id: 0, age: 2});
+    db.ref('people').once('value').then(v => console.info(v.val()));
+    peopleCell = new DepFireTailList(fieldVal);
+  });
+  it('should update when Firebase children of ref change', () => {
+    expect(Object.values(peopleCell.data)).toEqual([{name: "Joe", id: 0, age: 50}]);
+    people.push({name: "Fred", id: 1, age: 40});
+    people.push({name: "Bob", id: 2, age: 60});
+    expect(Object.values(peopleCell.data)).toEqual([
+      {name: "Joe", id: 0, age: 50},
+      {name: "Fred", id: 1, age: 40},
+      {name: "Bob", id: 2, age: 60}
+    ]);
+  });
+  it('should update when Firebase ref is deleted', () => {
+    people.remove();
+    expect(peopleCell.data).toBeNull();
+  });
+  it('should update when its ref changes', () => {
+    fieldKey.set('cats');
+    expect(Object.values(peopleCell.data)).toEqual([{name: "Maple", id: 0, age: 2}]);
+  });
+});
+
+// describe('RWFireTailList', () => {
+//   let fieldVal, fieldKey, peopleCell, people, cats;
+//
+//   beforeEach(() => {
+//     fieldKey = rx.cell("people");
+//     fieldVal = () => db.ref(fieldKey.get());
+//     people = db.ref('people');
+//     people.set({});
+//     cats = db.ref('cats');
+//     cats.set({});
+//     db.ref('people').push({name: "Joe", id: 0, age: 50});
+//     db.ref('cats').push({name: "Maple", id: 0, age: 2});
+//     peopleCell = new RWFireTailList(fieldVal, data => data.orderByKey());
+//   });
+//
+//   it('should update firebase on writes', () => {
+//
+//   });
+// });
+//
+// describe('RWFireTailCell', () => {
+//   let fieldVal, fieldKey, peopleCell;
+//
+//   beforeEach(() => {
+//     fieldKey = rx.cell("people");
+//     fieldVal = () => {
+//       let ref = db.ref(fieldKey.get());
+//       console.info(fieldKey.get());
+//       return ref;
+//     };
+//     db.ref('people').set({"Joe": {id: 0, age: 50}});
+//     db.ref('cats').set({"Maple": {id: 0, age: 2}});
+//     peopleCell = new RWFireTailCell(fieldVal);
+//   });
+//   it('should update when Firebase value of ref changes', () => {
+//     expect(Object.values(peopleCell.data)).toEqual([{name: "Joe", id: 0, age: 50}]);
+//     people.push({name: "Fred", id: 1, age: 40});
+//     people.push({name: "Bob", id: 2, age: 60});
+//     expect(Object.values(peopleCell.data)).toEqual([
+//       {name: "Joe", id: 0, age: 50},
+//       {name: "Fred", id: 1, age: 40},
+//       {name: "Bob", id: 2, age: 60}
+//     ]);
+//   });
+//   it('should update Firebase when it is mutated', () => {
+//   });
+// });

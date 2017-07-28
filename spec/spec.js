@@ -14,7 +14,7 @@ let app = firebase.initializeApp({
 });
 let db = app.database();
 
-Error.stackTraceLimit = 10;
+Error.stackTraceLimit = 20;
 
 
 describe('DepFireTailCell', () => {
@@ -23,9 +23,7 @@ describe('DepFireTailCell', () => {
   beforeEach(() => {
     fieldKey = rx.cell("people");
     fieldVal = () => {
-      let ref = db.ref(fieldKey.get());
-      console.info(fieldKey.get());
-      return ref;
+      return db.ref(fieldKey.get());
     };
     db.ref('people').set({"Joe": {id: 0, age: 50}});
     db.ref('cats').set({"Maple": {id: 0, age: 2}});
@@ -66,7 +64,6 @@ describe('DepFireTailList', () => {
     cats.set({});
     db.ref('people').push({name: "Joe", id: 0, age: 50});
     db.ref('cats').push({name: "Maple", id: 0, age: 2});
-    db.ref('people').once('value').then(v => console.info(v.val()));
     peopleCell = new DepFireTailList(fieldVal);
   });
   it('should update when Firebase children of ref change', () => {
@@ -89,50 +86,48 @@ describe('DepFireTailList', () => {
   });
 });
 
-// describe('RWFireTailList', () => {
-//   let fieldVal, fieldKey, peopleCell, people, cats;
-//
-//   beforeEach(() => {
-//     fieldKey = rx.cell("people");
-//     fieldVal = () => db.ref(fieldKey.get());
-//     people = db.ref('people');
-//     people.set({});
-//     cats = db.ref('cats');
-//     cats.set({});
-//     db.ref('people').push({name: "Joe", id: 0, age: 50});
-//     db.ref('cats').push({name: "Maple", id: 0, age: 2});
-//     peopleCell = new RWFireTailList(fieldVal, data => data.orderByKey());
-//   });
-//
-//   it('should update firebase on writes', () => {
-//
-//   });
-// });
-//
-// describe('RWFireTailCell', () => {
-//   let fieldVal, fieldKey, peopleCell;
-//
-//   beforeEach(() => {
-//     fieldKey = rx.cell("people");
-//     fieldVal = () => {
-//       let ref = db.ref(fieldKey.get());
-//       console.info(fieldKey.get());
-//       return ref;
-//     };
-//     db.ref('people').set({"Joe": {id: 0, age: 50}});
-//     db.ref('cats').set({"Maple": {id: 0, age: 2}});
-//     peopleCell = new RWFireTailCell(fieldVal);
-//   });
-//   it('should update when Firebase value of ref changes', () => {
-//     expect(Object.values(peopleCell.data)).toEqual([{name: "Joe", id: 0, age: 50}]);
-//     people.push({name: "Fred", id: 1, age: 40});
-//     people.push({name: "Bob", id: 2, age: 60});
-//     expect(Object.values(peopleCell.data)).toEqual([
-//       {name: "Joe", id: 0, age: 50},
-//       {name: "Fred", id: 1, age: 40},
-//       {name: "Bob", id: 2, age: 60}
-//     ]);
-//   });
-//   it('should update Firebase when it is mutated', () => {
-//   });
-// });
+describe('RWFireTailList', () => {
+  let fieldVal, fieldKey, peopleCell, people, cats;
+
+  beforeEach(() => {
+    fieldKey = rx.cell("people");
+    fieldVal = () => db.ref(fieldKey.get());
+    people = db.ref('people');
+    people.set({});
+    cats = db.ref('cats');
+    cats.set({});
+    db.ref('people').push({name: "Joe", id: 0, age: 50});
+    db.ref('cats').push({name: "Maple", id: 0, age: 2});
+    peopleCell = new RWFireTailList(fieldVal, data => data.orderByKey());
+  });
+
+  it('should update firebase on writes', () => {
+
+  });
+});
+
+describe('RWFireTailCell', () => {
+  let fieldVal, fieldKey, peopleCell, people, cats;
+
+  beforeEach(() => {
+    fieldKey = rx.cell("people");
+    fieldVal = () => db.ref(fieldKey.get());
+    db.ref('people').set({"Joe": {id: 0, age: 50}});
+    db.ref('cats').set({"Maple": {id: 0, age: 2}});
+    people = db.ref('people');
+    cats = db.ref('cats');
+    peopleCell = new RWFireTailCell(fieldVal);
+  });
+  fit('should update when Firebase value of ref changes', () => {
+    expect(Object.values(peopleCell.data)).toEqual([{name: "Joe", id: 0, age: 50}]);
+    people.push({name: "Fred", id: 1, age: 40});
+    people.push({name: "Bob", id: 2, age: 60});
+    expect(Object.values(peopleCell.data)).toEqual([
+      {name: "Joe", id: 0, age: 50},
+      {name: "Fred", id: 1, age: 40},
+      {name: "Bob", id: 2, age: 60}
+    ]);
+  });
+  it('should update Firebase when it is mutated', () => {
+  });
+});

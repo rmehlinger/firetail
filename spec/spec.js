@@ -280,3 +280,15 @@ describe('primitives', () => {
     }, 100);
   });
 });
+
+describe('initialization', () => {
+  it('should work with values, not just functions', (done) => {
+    let a = db.ref('a');
+    a.set(42);
+    let aCell = new DepFireTailCell(a);
+    setTimeout(() => {
+      expect(aCell.data).toBe(42);
+      done();
+    }, 100)
+  })
+});

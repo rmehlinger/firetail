@@ -16,9 +16,8 @@ let listEvents = {
 
 class FireTailBase extends ObsJsonCell {
   constructor(refFn, init=null) {
-    // super(typeof refFn === 'function' ? refFn: () => refFn, init);
     super(init);
-    this.refFn = refFn;
+    this.refFn = typeof refFn === 'function' ? refFn: () => refFn;
     this.refCell = bind(this.refFn);
   }
 }

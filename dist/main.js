@@ -186,7 +186,9 @@
 
       var _this4 = _possibleConstructorReturn(this, (FireTailBase.__proto__ || Object.getPrototypeOf(FireTailBase)).call(this, init));
 
-      _this4.refFn = refFn;
+      _this4.refFn = typeof refFn === 'function' ? refFn : function () {
+        return refFn;
+      };
       _this4.refCell = (0, _bobtailRx.bind)(_this4.refFn);
       return _this4;
     }

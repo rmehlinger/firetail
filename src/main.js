@@ -16,9 +16,8 @@ let listEvents = {
 
 class FireTailBase extends ObsJsonCell {
   constructor(refFn, init=null) {
-    // super(typeof refFn === 'function' ? refFn: () => refFn, init);
     super(init);
-    this.refFn = refFn;
+    this.refFn = typeof refFn === 'function' ? refFn: () => refFn;
     this.refCell = bind(this.refFn);
   }
 }
@@ -91,6 +90,8 @@ class RWFireTailBase extends FireTailBase {
     }
     return true;
   }
+  set data(val) {this._update(val);}
+  get data() {return this._data.value;}
 }
 
 export class RWFireTailCell extends RWFireTailBase {
@@ -100,7 +101,9 @@ export class RWFireTailCell extends RWFireTailBase {
       if(o) {
         o.off();  // turn off old listeners, if any
       }
-      n.on('value', data => this._update(data.val()));
+      n.on('value', data => {
+        this._update(data.val());
+      });
     });
   }
 }

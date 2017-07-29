@@ -79,6 +79,24 @@
     };
   }();
 
+  var _createClass = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];
+        descriptor.enumerable = descriptor.enumerable || false;
+        descriptor.configurable = true;
+        if ("value" in descriptor) descriptor.writable = true;
+        Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }
+
+    return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);
+      if (staticProps) defineProperties(Constructor, staticProps);
+      return Constructor;
+    };
+  }();
+
   var _get = function get(object, property, receiver) {
     if (object === null) object = Function.prototype;
     var desc = Object.getOwnPropertyDescriptor(object, property);
@@ -109,24 +127,6 @@
       throw new TypeError("Cannot call a class as a function");
     }
   }
-
-  var _createClass = function () {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];
-        descriptor.enumerable = descriptor.enumerable || false;
-        descriptor.configurable = true;
-        if ("value" in descriptor) descriptor.writable = true;
-        Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }
-
-    return function (Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);
-      if (staticProps) defineProperties(Constructor, staticProps);
-      return Constructor;
-    };
-  }();
 
   function _possibleConstructorReturn(self, call) {
     if (!self) {
@@ -190,15 +190,6 @@
       _this4.refCell = (0, _bobtailRx.bind)(_this4.refFn);
       return _this4;
     }
-
-    _createClass(FireTailBase, [{
-      key: 'destroy',
-      value: function destroy() {
-        this.refCell.raw().off();
-        this.refCell.disconnect();
-        this.onChange.subs = {};
-      }
-    }]);
 
     return FireTailBase;
   }(_bobtailJsonCell.ObsJsonCell);
@@ -328,6 +319,14 @@
         }
         return true;
       }
+    }, {
+      key: 'data',
+      set: function set(val) {
+        this._update(val);
+      },
+      get: function get() {
+        return this._data.value;
+      }
     }]);
 
     return RWFireTailBase;
@@ -350,7 +349,7 @@
           o.off(); // turn off old listeners, if any
         }
         n.on('value', function (data) {
-          return _this9._update(data.val());
+          _this9._update(data.val());
         });
       });
       return _this9;

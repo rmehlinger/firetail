@@ -218,3 +218,65 @@ describe('RWFireTailList', () => {
     }, (error) => console.error(error));
   });
 });
+
+describe('primitives', () => {
+  let prims, a;
+  beforeEach(() => {
+    prims = db.ref('prims');
+    prims.set({a: 0, b: 1});
+    a = db.ref('prims/a');
+  });
+  it('should work with DepFireTailCells', (done) => {
+    let aCell = new DepFireTailCell(() => a);
+    setTimeout(() => {
+      expect(aCell.data).toBe(0);
+      a.set(1);
+      setTimeout(() => {
+        expect(aCell.data).toBe(1);
+        done();
+      }, 100);
+    }, 100);
+  });
+  it('should work with RWFireTailCells', (done) => {
+    let aCell = new RWFireTailCell(() => a);
+    setTimeout(() => {
+      expect(aCell.data).toBe(0);
+      a.set(1);
+      setTimeout(() => {
+        expect(aCell.data).toBe(1);
+        aCell.data = 2;
+        setTimeout(() => {
+          a.once('value').then(data => expect(data.val()).toBe(2));
+          done();
+        }, 100)
+      }, 100);
+    }, 100);
+  });
+  it('should work as elements of DepFireTailLists', (done) => {
+    let primsList = new DepFireTailList(() => prims);
+    setTimeout(() => {
+      expect(primsList.data).toEqual({a: 0, b: 1});
+      prims.push().set(42);
+      setTimeout(() => {
+        expect(Object.values(primsList.data)).toEqual([0, 1, 42]);
+        done();
+      }, 100);
+    }, 100);
+  });
+  it('should work as elements of RWFireTailLists', (done) => {
+    let primsList = new RWFireTailList(() => prims);
+    setTimeout(() => {
+      expect(primsList.data).toEqual({a: 0, b: 1});
+      primsList.push(2);
+      setTimeout(() => {
+        expect(Object.values(primsList.data)).toEqual([0, 1, 2]);
+        primsList.data.a = -1;
+        setTimeout(() => {
+          a.once('value').then(data => expect(data.val()).toEqual(-1));
+          expect(Object.values(primsList.data)).toEqual([-1, 1, 2]);
+          done();
+        }, 100);
+      }, 100);
+    }, 100);
+  });
+});

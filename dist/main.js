@@ -1,22 +1,24 @@
 (function (global, factory) {
   if (typeof define === "function" && define.amd) {
-    define('bobtail-deep-cell', ['exports', 'bobtail-rx', 'bobtail-json-cell', 'lodash.set'], factory);
+    define('bobtail-deep-cell', ['exports', 'bobtail-rx', 'bobtail-json-cell', 'underscore', 'lodash.set'], factory);
   } else if (typeof exports !== "undefined") {
-    factory(exports, require('bobtail-rx'), require('bobtail-json-cell'), require('lodash.set'));
+    factory(exports, require('bobtail-rx'), require('bobtail-json-cell'), require('underscore'), require('lodash.set'));
   } else {
     var mod = {
       exports: {}
     };
-    factory(mod.exports, global.rx, global.bobtailJsonCell, global.lodashSet);
+    factory(mod.exports, global.rx, global.bobtailJsonCell, global.underscore, global.lodashSet);
     global.bobtailDeepCell = mod.exports;
   }
-})(this, function (exports, _bobtailRx, _bobtailJsonCell, _lodash) {
+})(this, function (exports, _bobtailRx, _bobtailJsonCell, _underscore, _lodash) {
   'use strict';
 
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
-  exports.RWFireTailList = exports.RWFireTailCell = exports.DepFireTailList = exports.DepFireTailCell = undefined;
+  exports.RWFireTailSyncArray = exports.RWFireTailList = exports.RWFireTailCell = exports.DepFireTailList = exports.DepFireTailCell = undefined;
+
+  var _underscore2 = _interopRequireDefault(_underscore);
 
   var _lodash2 = _interopRequireDefault(_lodash);
 
@@ -39,6 +41,79 @@
     }
 
     return obj;
+  }
+
+  var _get = function get(object, property, receiver) {
+    if (object === null) object = Function.prototype;
+    var desc = Object.getOwnPropertyDescriptor(object, property);
+
+    if (desc === undefined) {
+      var parent = Object.getPrototypeOf(object);
+
+      if (parent === null) {
+        return undefined;
+      } else {
+        return get(parent, property, receiver);
+      }
+    } else if ("value" in desc) {
+      return desc.value;
+    } else {
+      var getter = desc.get;
+
+      if (getter === undefined) {
+        return undefined;
+      }
+
+      return getter.call(receiver);
+    }
+  };
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var _createClass = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];
+        descriptor.enumerable = descriptor.enumerable || false;
+        descriptor.configurable = true;
+        if ("value" in descriptor) descriptor.writable = true;
+        Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }
+
+    return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);
+      if (staticProps) defineProperties(Constructor, staticProps);
+      return Constructor;
+    };
+  }();
+
+  function _possibleConstructorReturn(self, call) {
+    if (!self) {
+      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+    }
+
+    return call && (typeof call === "object" || typeof call === "function") ? call : self;
+  }
+
+  function _inherits(subClass, superClass) {
+    if (typeof superClass !== "function" && superClass !== null) {
+      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+    }
+
+    subClass.prototype = Object.create(superClass && superClass.prototype, {
+      constructor: {
+        value: subClass,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+    if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
   }
 
   var _slicedToArray = function () {
@@ -79,102 +154,65 @@
     };
   }();
 
-  var _createClass = function () {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];
-        descriptor.enumerable = descriptor.enumerable || false;
-        descriptor.configurable = true;
-        if ("value" in descriptor) descriptor.writable = true;
-        Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }
-
-    return function (Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);
-      if (staticProps) defineProperties(Constructor, staticProps);
-      return Constructor;
-    };
-  }();
-
-  var _get = function get(object, property, receiver) {
-    if (object === null) object = Function.prototype;
-    var desc = Object.getOwnPropertyDescriptor(object, property);
-
-    if (desc === undefined) {
-      var parent = Object.getPrototypeOf(object);
-
-      if (parent === null) {
-        return undefined;
-      } else {
-        return get(parent, property, receiver);
-      }
-    } else if ("value" in desc) {
-      return desc.value;
-    } else {
-      var getter = desc.get;
-
-      if (getter === undefined) {
-        return undefined;
-      }
-
-      return getter.call(receiver);
-    }
-  };
-
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  function _possibleConstructorReturn(self, call) {
-    if (!self) {
-      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-    }
-
-    return call && (typeof call === "object" || typeof call === "function") ? call : self;
-  }
-
-  function _inherits(subClass, superClass) {
-    if (typeof superClass !== "function" && superClass !== null) {
-      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-    }
-
-    subClass.prototype = Object.create(superClass && superClass.prototype, {
-      constructor: {
-        value: subClass,
-        enumerable: false,
-        writable: true,
-        configurable: true
-      }
-    });
-    if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }
-
   var listEvents = {
     child_added: function child_added(data) {
       var _this = this;
 
-      return this._updating(function () {
+      return this._reloading(function () {
         return (0, _lodash2.default)(_this, ['data', data.key], data.val());
       });
     },
     child_changed: function child_changed(data) {
       var _this2 = this;
 
-      return this._updating(function () {
+      return this._reloading(function () {
         return (0, _lodash2.default)(_this2, ['data', data.key], data.val());
       });
     },
     child_removed: function child_removed(data) {
       var _this3 = this;
 
-      return this._updating(function () {
+      return this._reloading(function () {
         return delete _this3.data[data.key];
       });
     }
   };
+
+  function initCell(_ref) {
+    var _this4 = this;
+
+    var _ref2 = _slicedToArray(_ref, 2),
+        o = _ref2[0],
+        n = _ref2[1];
+
+    if (o) {
+      o.off(); // turn off old listeners, if any
+    }
+    return n.on('value', function (data) {
+      return _this4._reload(data.val());
+    });
+  }
+
+  function initList(_ref3) {
+    var _this5 = this;
+
+    var _ref4 = _slicedToArray(_ref3, 2),
+        o = _ref4[0],
+        n = _ref4[1];
+
+    if (o) {
+      o.off(); // turn off old listeners, if any
+    }
+    var entries = Object.entries(listEvents);
+    this._reload({});
+    entries.map(function (_ref5) {
+      var _ref6 = _slicedToArray(_ref5, 2),
+          ev = _ref6[0],
+          handler = _ref6[1];
+
+      return n.on(ev, handler.bind(_this5));
+    });
+  }
 
   var FireTailBase = function (_ObsJsonCell) {
     _inherits(FireTailBase, _ObsJsonCell);
@@ -184,14 +222,37 @@
 
       _classCallCheck(this, FireTailBase);
 
-      var _this4 = _possibleConstructorReturn(this, (FireTailBase.__proto__ || Object.getPrototypeOf(FireTailBase)).call(this, init));
+      var _this6 = _possibleConstructorReturn(this, (FireTailBase.__proto__ || Object.getPrototypeOf(FireTailBase)).call(this, init));
 
-      _this4.refFn = typeof refFn === 'function' ? refFn : function () {
+      _this6.refFn = typeof refFn === 'function' ? refFn : function () {
         return refFn;
       };
-      _this4.refCell = (0, _bobtailRx.bind)(_this4.refFn);
-      return _this4;
+      _this6.refCell = (0, _bobtailRx.bind)(_this6.refFn);
+      _this6._nowReloading = false;
+      return _this6;
     }
+
+    _createClass(FireTailBase, [{
+      key: '_reload',
+      value: function _reload(data) {
+        var _this7 = this;
+
+        this._reloading(function () {
+          return _this7._update(data);
+        });
+      }
+    }, {
+      key: '_reloading',
+      value: function _reloading(f) {
+        var _wasReloading = this._nowReloading;
+        this._nowReloading = true;
+        try {
+          this._updating(f);
+        } finally {
+          this._nowReloading = _wasReloading;
+        }
+      }
+    }]);
 
     return FireTailBase;
   }(_bobtailJsonCell.ObsJsonCell);
@@ -200,28 +261,13 @@
     _inherits(DepFireTailBase, _FireTailBase);
 
     function DepFireTailBase() {
+      var _this8;
+
       _classCallCheck(this, DepFireTailBase);
 
-      return _possibleConstructorReturn(this, (DepFireTailBase.__proto__ || Object.getPrototypeOf(DepFireTailBase)).apply(this, arguments));
+      (_this8 = _possibleConstructorReturn(this, (DepFireTailBase.__proto__ || Object.getPrototypeOf(DepFireTailBase)).apply(this, arguments)), _this8)._makeReadOnly();
+      return _this8;
     }
-    // FIXME: figure out some way to do this via inheritance rather than copy-paste from bobtail-json-cell.
-
-
-    _createClass(DepFireTailBase, [{
-      key: 'setProperty',
-      value: function setProperty(getPath, basePath, obj, prop, val) {
-        if (!this._nowUpdating) {
-          throw new DepMutationError("Cannot mutate DepJsonCell!");
-        } else return _get(DepFireTailBase.prototype.__proto__ || Object.getPrototypeOf(DepFireTailBase.prototype), 'setProperty', this).call(this, getPath, basePath, obj, prop, val);
-      }
-    }, {
-      key: 'deleteProperty',
-      value: function deleteProperty(getPath, basePath, obj, prop) {
-        if (!this._nowUpdating) {
-          throw new DepMutationError("Cannot mutate DepJsonCell!");
-        } else return _get(DepFireTailBase.prototype.__proto__ || Object.getPrototypeOf(DepFireTailBase.prototype), 'deleteProperty', this).call(this, getPath, basePath, obj, prop);
-      }
-    }]);
 
     return DepFireTailBase;
   }(FireTailBase);
@@ -234,21 +280,10 @@
 
       _classCallCheck(this, DepFireTailCell);
 
-      var _this6 = _possibleConstructorReturn(this, (DepFireTailCell.__proto__ || Object.getPrototypeOf(DepFireTailCell)).call(this, refFn, init));
+      var _this9 = _possibleConstructorReturn(this, (DepFireTailCell.__proto__ || Object.getPrototypeOf(DepFireTailCell)).call(this, refFn, init));
 
-      (0, _bobtailRx.autoSub)(_this6.refCell.onSet, function (_ref) {
-        var _ref2 = _slicedToArray(_ref, 2),
-            o = _ref2[0],
-            n = _ref2[1];
-
-        if (o) {
-          o.off(); // turn off old listeners, if any
-        }
-        n.on('value', function (data) {
-          return _this6._update(data.val());
-        });
-      });
-      return _this6;
+      (0, _bobtailRx.autoSub)(_this9.refCell.onSet, initCell.bind(_this9));
+      return _this9;
     }
 
     return DepFireTailCell;
@@ -260,34 +295,10 @@
     function DepFireTailList(refFn, init) {
       _classCallCheck(this, DepFireTailList);
 
-      var _this7 = _possibleConstructorReturn(this, (DepFireTailList.__proto__ || Object.getPrototypeOf(DepFireTailList)).call(this, refFn, init || {}, listEvents));
+      var _this10 = _possibleConstructorReturn(this, (DepFireTailList.__proto__ || Object.getPrototypeOf(DepFireTailList)).call(this, refFn, init || {}, listEvents));
 
-      _this7._loadPromise = null;
-      (0, _bobtailRx.autoSub)(_this7.refCell.onSet, function (_ref3) {
-        var _ref4 = _slicedToArray(_ref3, 2),
-            o = _ref4[0],
-            n = _ref4[1];
-
-        if (o) {
-          o.off(); // turn off old listeners, if any
-        }
-        _this7._loadPromise = n.once('value').then(function (data) {
-          _this7._update(data.val());
-          var entries = Object.entries(listEvents);
-          (0, _bobtailRx.transaction)(function () {
-            return _this7._updating(function () {
-              return entries.forEach(function (_ref5) {
-                var _ref6 = _slicedToArray(_ref5, 2),
-                    ev = _ref6[0],
-                    handler = _ref6[1];
-
-                return n.on(ev, handler.bind(_this7));
-              });
-            });
-          });
-        });
-      });
-      return _this7;
+      (0, _bobtailRx.autoSub)(_this10.refCell.onSet, initList.bind(_this10));
+      return _this10;
     }
 
     return DepFireTailList;
@@ -306,9 +317,9 @@
       key: 'setProperty',
       value: function setProperty(getPath, basePath, obj, prop, val) {
         _get(RWFireTailBase.prototype.__proto__ || Object.getPrototypeOf(RWFireTailBase.prototype), 'setProperty', this).call(this, getPath, basePath, obj, prop, val);
-        if (true || !this._nowUpdating) {
+        if (!this._nowReloading) {
           var path = getPath(prop).slice(1).join('/');
-          this.refCell.raw().update(_defineProperty({}, path, val));
+          this.refCell.raw().ref.update(_defineProperty({}, path, val));
         }
         return true;
       }
@@ -316,8 +327,8 @@
       key: 'deleteProperty',
       value: function deleteProperty(getPath, basePath, obj, prop) {
         _get(RWFireTailBase.prototype.__proto__ || Object.getPrototypeOf(RWFireTailBase.prototype), 'deleteProperty', this).call(this, getPath, basePath, obj, prop);
-        if (true || !this._nowUpdating) {
-          this.refCell.raw().update(_defineProperty({}, getPath(prop).slice(1).join('/'), null));
+        if (!this._nowReloading) {
+          this.refCell.raw().ref.update(_defineProperty({}, getPath(prop).slice(1).join('/'), null));
         }
         return true;
       }
@@ -340,21 +351,10 @@
     function RWFireTailCell(refFn, init) {
       _classCallCheck(this, RWFireTailCell);
 
-      var _this9 = _possibleConstructorReturn(this, (RWFireTailCell.__proto__ || Object.getPrototypeOf(RWFireTailCell)).call(this, refFn, init));
+      var _this12 = _possibleConstructorReturn(this, (RWFireTailCell.__proto__ || Object.getPrototypeOf(RWFireTailCell)).call(this, refFn, init));
 
-      (0, _bobtailRx.autoSub)(_this9.refCell.onSet, function (_ref7) {
-        var _ref8 = _slicedToArray(_ref7, 2),
-            o = _ref8[0],
-            n = _ref8[1];
-
-        if (o) {
-          o.off(); // turn off old listeners, if any
-        }
-        n.on('value', function (data) {
-          _this9._update(data.val());
-        });
-      });
-      return _this9;
+      (0, _bobtailRx.autoSub)(_this12.refCell.onSet, initCell.bind(_this12));
+      return _this12;
     }
 
     return RWFireTailCell;
@@ -366,42 +366,111 @@
     function RWFireTailList(refFn, init) {
       _classCallCheck(this, RWFireTailList);
 
-      var _this10 = _possibleConstructorReturn(this, (RWFireTailList.__proto__ || Object.getPrototypeOf(RWFireTailList)).call(this, refFn, init || {}, listEvents));
+      var _this13 = _possibleConstructorReturn(this, (RWFireTailList.__proto__ || Object.getPrototypeOf(RWFireTailList)).call(this, refFn, init || {}, listEvents));
 
-      _this10._loadPromise = null;
-      (0, _bobtailRx.autoSub)(_this10.refCell.onSet, function (_ref9) {
-        var _ref10 = _slicedToArray(_ref9, 2),
-            o = _ref10[0],
-            n = _ref10[1];
-
-        if (o) {
-          o.off(); // turn off old listeners, if any
-        }
-        _this10._loadPromise = n.once('value').then(function (data) {
-          _this10._update(data.val());
-          var entries = Object.entries(listEvents);
-          entries.forEach(function (_ref11) {
-            var _ref12 = _slicedToArray(_ref11, 2),
-                ev = _ref12[0],
-                handler = _ref12[1];
-
-            return n.on(ev, handler.bind(_this10));
-          });
-        });
-      });
-      return _this10;
+      (0, _bobtailRx.autoSub)(_this13.refCell.onSet, initList.bind(_this13));
+      return _this13;
     }
 
     _createClass(RWFireTailList, [{
       key: 'push',
       value: function push(elem) {
-        var ref = this.refCell.raw().push();
+        var ref = this.refCell.raw().ref.push();
         ref.set(elem);
         return ref;
       }
     }]);
 
     return RWFireTailList;
+  }(RWFireTailBase);
+
+  var FireKey = Symbol();
+
+  var RWFireTailSyncArray = exports.RWFireTailSyncArray = function (_RWFireTailBase3) {
+    _inherits(RWFireTailSyncArray, _RWFireTailBase3);
+
+    function RWFireTailSyncArray(refFn, init) {
+      _classCallCheck(this, RWFireTailSyncArray);
+
+      var _this14 = _possibleConstructorReturn(this, (RWFireTailSyncArray.__proto__ || Object.getPrototypeOf(RWFireTailSyncArray)).call(this, refFn, init || [], listEvents));
+
+      (0, _bobtailRx.autoSub)(_this14.refCell.onSet, function (_ref7) {
+        var _ref8 = _slicedToArray(_ref7, 2),
+            o = _ref8[0],
+            n = _ref8[1];
+
+        if (o) {
+          o.off();
+        }
+
+        _this14._initListeners();
+      });
+      return _this14;
+    }
+
+    _createClass(RWFireTailSyncArray, [{
+      key: '_initListeners',
+      value: function _initListeners() {
+        this._monit('child_added', this._serverAdd);
+        this._monit('child_removed', this._serverRemove);
+        this._monit('child_changed', this._serverChange);
+        this._monit('child_moved', this._serverMove);
+      }
+    }, {
+      key: '_monit',
+      value: function _monit(event, method) {
+        this.ref.on(event, method.bind(this));
+      }
+    }, {
+      key: '_serverAdd',
+      value: function _serverAdd(snap, prevId) {
+        var data = _underscore2.default.extend(snap.val(), _defineProperty({}, FIRE_KEY, snap.key));
+        this._moveTo(data.key, data.value, prevId);
+      }
+    }, {
+      key: 'posByKey',
+      value: function posByKey(key) {
+        return _underscore2.default.findIndex(this.data, function (_ref9) {
+          var key2 = _ref9.key2;
+          return key2 === key;
+        });
+      }
+    }, {
+      key: '_serverRemove',
+      value: function _serverRemove(snap) {
+        var pos = this.posByKey(snap.key);
+        if (pos !== -1) {
+          this.data.splice(pos, 1);
+        }
+      }
+    }, {
+      key: '_serverChange',
+      value: function _serverChange(snap) {
+        var pos = this.posByKey(snap.key);
+        if (pos !== -1) {
+          this.data[pos] = { key: snap.key, value: snap.val() };
+        }
+      }
+    }, {
+      key: '_serverMove',
+      value: function _serverMove(snap, prevId) {
+        var id = snap.key;
+        var oldPos = this.posByKey(id);
+        if (oldPos !== -1) {
+          var data = this.data[oldPos];
+          this.data.splice(oldPos, 1);
+          this._moveTo(id, data, prevId);
+        }
+      }
+    }, {
+      key: '_moveTo',
+      value: function _moveTo(id, data, prevId) {
+        var pos = this.posByKey(prevId);
+        this.data.splice(pos, 0, data);
+      }
+    }]);
+
+    return RWFireTailSyncArray;
   }(RWFireTailBase);
 });
 

@@ -27,13 +27,8 @@ function initList ([o, n]) {
     o.off();  // turn off old listeners, if any
   }
   let entries = Object.entries(listEvents);
-  this._update({});
-  transaction(() => {
-    n.once('value').then(data => {
-      this._reload(data.val());
-      entries.map(([ev, handler]) => n.on(ev, handler.bind(this)));
-    });
-  });
+  this._reload({});
+  entries.map(([ev, handler]) => n.on(ev, handler.bind(this)));
 }
 
 class FireTailBase extends ObsJsonCell {

@@ -171,7 +171,7 @@ describe('RWFireTailList', () => {
   });
   it('should update firebase on writes', (done) => {
     setTimeout(() => {
-      peopleCell.data[Object.keys(peopleCell.data)[0]].age = 51
+      peopleCell.data[Object.keys(peopleCell.data)[0]].age = 51;
       setTimeout(() => {
         expect(Object.values(peopleCell.data)).toEqual([{name: "Joe", id: 0, age: 51}]);
         people.once('value').then(data => {
@@ -303,7 +303,7 @@ describe('initialization', () => {
 
 describe('filters', () => {
   let values, writeList;
-  beforeEach(() => {
+  beforeEach((done) => {
     values = db.ref('values');
     values.transaction(() => {
       values.set({});
@@ -312,18 +312,20 @@ describe('filters', () => {
       }
     }).then(() => {
       writeList = new RWFireTailList(values.orderByValue().limitToLast(5));
+      done();
     });
   });
   it('should not cause deletions because the filtered set changed', (done) => {
     values.push().set(10);
+    writeList.push(11);
     setTimeout(() => {
       values.once('value').then(data => {
         expect(_.chain(data.val()).values().sortBy(_.identity).value()).toEqual([
-          0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+          0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
         ]);
         setTimeout(() => {
           expect(_.chain(writeList.data).values().sortBy(_.identity).value()).toEqual([
-            6, 7, 8, 9, 10
+            7, 8, 9, 10, 11
           ]);
           done();
         }, 100);

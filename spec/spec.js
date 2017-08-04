@@ -2,6 +2,7 @@ jasmine.CATCH_EXCEPTIONS = false;
 import {DepFireTailCell, DepFireTailList, RWFireTailCell, RWFireTailList} from '../src/main.js';
 import * as firebase from 'firebase';
 import * as rx from 'bobtail-rx';
+import _ from 'underscore';
 
 let FirebaseServer = require('firebase-server');
 
@@ -93,10 +94,10 @@ describe('DepFireTailList', () => {
   });
   it('should update when its ref changes', (done) => {
     fieldKey.set('cats');
-    peopleCell._loadPromise.then(() => {
+    setTimeout(() => {
       expect(Object.values(peopleCell.data)).toEqual([{name: "Maple", id: 0, age: 2}]);
       done();
-    });
+    }, 100);
   });
 });
 
@@ -169,7 +170,7 @@ describe('RWFireTailList', () => {
     });
   });
   it('should update firebase on writes', (done) => {
-    peopleCell._loadPromise.then(() => {
+    setTimeout(() => {
       peopleCell.data[Object.keys(peopleCell.data)[0]].age = 51
       setTimeout(() => {
         expect(Object.values(peopleCell.data)).toEqual([{name: "Joe", id: 0, age: 51}]);
@@ -178,17 +179,17 @@ describe('RWFireTailList', () => {
           done();
         });
       }, 100);
-    });
+    }, 100);
   });
   it('should be able to push new elements', (done) => {
-    peopleCell._loadPromise.then(() => {
+    setTimeout(() => {
       peopleCell.push("foo");
       expect(Object.values(peopleCell.data).includes('foo')).toBe(true);
       people.once('value').then(data => {
         expect(Object.values(data.val()).includes('foo')).toBe(true)
         done();
       });
-    });
+    }, 100);
   });
 
   it('should update when Firebase children of ref change', (done) => {
@@ -212,10 +213,17 @@ describe('RWFireTailList', () => {
   });
   it('should update when its ref changes', (done) => {
     fieldKey.set('cats2');
-    peopleCell._loadPromise.then(() => {
+    setTimeout(() => {
       expect(Object.values(peopleCell.data)).toEqual([{name: "Maple", id: 0, age: 2}]);
-      done();
-    }, (error) => console.error(error));
+      cats.push().set({name: 'Molly', age: 18, id: 1});
+      setTimeout(() => {
+        expect(Object.values(peopleCell.data)).toEqual([
+          {name: "Maple", id: 0, age: 2},
+          {name: 'Molly', age: 18, id: 1}
+        ]);
+        done();
+      }, 100);
+    }, 100);
   });
 });
 
@@ -291,4 +299,35 @@ describe('initialization', () => {
       done();
     }, 100)
   })
+});
+
+describe('filters', () => {
+  let values, writeList;
+  beforeEach(() => {
+    values = db.ref('values');
+    values.transaction(() => {
+      values.set({});
+      for(let i = 0; i < 10; i++) {
+        values.push().set(i);
+      }
+    }).then(() => {
+      writeList = new RWFireTailList(values.orderByValue().limitToLast(5));
+    });
+  });
+  it('should not cause deletions because the filtered set changed', (done) => {
+    values.push().set(10);
+    setTimeout(() => {
+      values.once('value').then(data => {
+        expect(_.chain(data.val()).values().sortBy(_.identity).value()).toEqual([
+          0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+        ]);
+        setTimeout(() => {
+          expect(_.chain(writeList.data).values().sortBy(_.identity).value()).toEqual([
+            6, 7, 8, 9, 10
+          ]);
+          done();
+        }, 100);
+      });
+    }, 100);
+  });
 });

@@ -1,5 +1,8 @@
 jasmine.CATCH_EXCEPTIONS = false;
-import {DepFireTailCell, DepFireTailList, RWFireTailCell, RWFireTailList} from '../src/main.js';
+import {
+  DepFireTailCell, DepFireTailList,
+  RWFireTailCell, RWFireTailList, DepSyncArray
+} from '../src/main.js';
 import * as firebase from 'firebase';
 import * as rx from 'bobtail-rx';
 import _ from 'underscore';
@@ -15,13 +18,19 @@ let app = firebase.initializeApp({
 });
 let db = app.database();
 
-Error.stackTraceLimit = Infinity;
+Error.stackTraceLimit = 10;
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000;
 
 process.on('unhandledRejection', (reason, p) => {
   console.error('Unhandled Rejection at: Promise', p, 'reason:', reason);
 });
 
+process.stderr.write = (function(write) {
+  return function() {
+    if (!arguments[0].startsWith("FIREBASE WARNING"))
+      write.apply(process.stderr, arguments);
+  };
+}(process.stderr.write));
 
 describe('DepFireTailCell', () => {
   let fieldVal, fieldKey, peopleCell;
@@ -186,7 +195,7 @@ describe('RWFireTailList', () => {
       peopleCell.push("foo");
       expect(Object.values(peopleCell.data).includes('foo')).toBe(true);
       people.once('value').then(data => {
-        expect(Object.values(data.val()).includes('foo')).toBe(true)
+        expect(Object.values(data.val()).includes('foo')).toBe(true);
         done();
       });
     }, 100);
@@ -326,6 +335,38 @@ describe('filters', () => {
         setTimeout(() => {
           expect(_.chain(writeList.data).values().sortBy(_.identity).value()).toEqual([
             7, 8, 9, 10, 11
+          ]);
+          done();
+        }, 100);
+      });
+    }, 100);
+  });
+});
+
+describe("DepSyncArray", () => {
+  let values, readArray;
+  beforeEach((done) => {
+    values = db.ref('values');
+    values.transaction(() => {
+      values.set({});
+      for(let i = 0; i < 10; i++) {
+        values.push().set(i);
+      }
+    }).then(() => {
+      readArray = new DepSyncArray(values.orderByValue().limitToLast(5));
+      done();
+    });
+  });
+  it('should not cause deletions because the filtered set changed', (done) => {
+    values.push().set(10);
+    setTimeout(() => {
+      values.once('value').then(data => {
+        expect(_.chain(data.val()).values().sortBy(_.identity).value()).toEqual([
+          0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+        ]);
+        setTimeout(() => {
+          expect(_.chain(readArray.data).values().sortBy(_.identity).value()).toEqual([
+            6, 7, 8, 9, 10
           ]);
           done();
         }, 100);

@@ -1,5 +1,5 @@
 import {autoSub, bind, array, transaction} from 'bobtail-rx';
-import {ObsJsonCell, SrcJsonCell} from 'bobtail-json-cell';
+import {ObsJsonCell, DepJsonCell} from 'bobtail-json-cell';
 import _ from 'underscore';
 import safeSet from 'lodash.set';
 
@@ -65,10 +65,11 @@ export class DepFireTailCell extends DepFireTailBase {
 
 export class DepFireTailList extends DepFireTailBase {
   constructor(refFn, init) {
-    super(refFn, init || {}, listEvents);
+    super(refFn, init || {});
     autoSub(this.refCell.onSet, initList.bind(this));
   }
 }
+
 
 class RWFireTailBase extends FireTailBase {
   constructor(refFn, init, events) {
@@ -102,7 +103,7 @@ export class RWFireTailCell extends RWFireTailBase {
 
 export class RWFireTailList extends RWFireTailBase {
   constructor(refFn, init) {
-    super(refFn, init || {}, listEvents);
+    super(refFn, init || {});
     autoSub(this.refCell.onSet, initList.bind(this));
   }
   push(elem) {
@@ -112,65 +113,96 @@ export class RWFireTailList extends RWFireTailBase {
   }
 }
 
-let FireKey = Symbol();
+let FIRE_KEY = Symbol("fire_key");
 
-export class RWFireTailSyncArray extends RWFireTailBase {
-  constructor(refFn, init) {
-    super(refFn, init || [], listEvents);
+class BaseSyncArray extends FireTailBase {
+  constructor(refFn, init=[]) {
+    super(refFn, init);
+    this._valuesPlucked = new Proxy(super.data, this.conf());
+
     autoSub(this.refCell.onSet, ([o, n]) => {
       if(o) {o.off();}
 
-      this._initListeners()
+      this._initListeners();
+      // this dance is necessary to handle primitives while keeping their key associated with them
     });
   }
-  
-  _initListeners() {
+  _monit (event, method) {
+    this.refCell.raw().on(event, method.bind(this));
+  };
+
+  _initListeners () {
     this._monit('child_added', this._serverAdd);
     this._monit('child_removed', this._serverRemove);
     this._monit('child_changed', this._serverChange);
     this._monit('child_moved', this._serverMove);
   };
-  
-  _monit(event, method) {
-    this.ref.on(event, method.bind(this));
-  };
-  
-  
-  _serverAdd(snap, prevId) {
-    let data = _.extend(snap.val(), {[FIRE_KEY]: snap.key})
-    this._moveTo(data.key, data.value, prevId);
+
+  _serverAdd (snap, prevId) {
+    this._reloading(() => {
+      let data = {value: snap.val(), [FIRE_KEY]: snap.key};
+      this._moveTo(data, prevId);
+    });
   };
 
-  posByKey(key) {
-    return _.findIndex(this.data, ({key2}) => key2 === key)
-  }
+  _serverRemove (snap) {
+    this._reloading(() => {
+      let pos = this.posByKey(snap.key);
+      if( pos !== -1 ) {
+        super.data.splice(pos, 1);
+      }
+    });
+  };
 
-  _serverRemove(snap) {
-    let pos = this.posByKey(snap.key);
-    if( pos !== -1 ) {
-      this.data.splice(pos, 1);
-    }
+  _serverChange (snap) {
+    this._reloading(() => {
+      let pos = this.posByKey(snap.key);
+      if( pos !== -1 ) {
+        this.data[pos] = {key: snap.key, value: snap.val()};
+      }
+    });
   };
-  
-  _serverChange(snap) {
-    let pos = this.posByKey(snap.key);
-    if( pos !== -1 ) {
-      this.data[pos] = {key: snap.key, value: snap.val()};
-    }
+
+  _serverMove (snap, prevId) {
+    this._reloading(() => {
+      let id = snap.key;
+      let oldPos = this.posByKey(id);
+      if( oldPos !== -1 ) {
+        let data = this.data[oldPos];
+        this.data.splice(oldPos, 1);
+        this._moveTo(id, data, prevId);
+      }
+    });
   };
-  
-  _serverMove(snap, prevId) {
-    let id = snap.key;
-    let oldPos = this.posByKey(id);
-    if( oldPos !== -1 ) {
-      let data = this.data[oldPos];
-      this.data.splice(oldPos, 1);
-      this._moveTo(id, data, prevId);
-    }
-  };
-  
-  _moveTo(id, data, prevId) {
+
+  _moveTo (data, prevId) {
     let pos = this.posByKey(prevId);
-    this.data.splice(pos, 0, data);
+    super.data.splice(pos, 0, data);
   };
+
+  posByKey (key) {
+    return _.findIndex(super.data, (data) => data[FIRE_KEY] === key)
+  };
+
+  conf () {
+    return {
+      get(obj, key) {
+        let base = obj[key];
+        if(key in obj && typeof key !== 'symbol' && !isNaN(key)) {
+          return base.value;
+        }
+        return base;
+      }
+    }
+  }
+}
+
+export class DepSyncArray extends BaseSyncArray {
+  constructor(refFn, init) {
+    super(refFn, init || []);
+    this._makeReadOnly();
+  }
+  get data() {
+    return this._valuesPlucked;
+  }
 }

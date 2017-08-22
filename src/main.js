@@ -113,7 +113,7 @@ export class RWFireTailList extends RWFireTailBase {
   }
 }
 
-let FIRE_KEY = Symbol("fire_key");
+export let FIRE_KEY = Symbol("fire_key");
 
 class BaseSyncArray extends FireTailBase {
   constructor(refFn, init=[]) {
@@ -181,19 +181,21 @@ class BaseSyncArray extends FireTailBase {
   };
 
   posByKey (key) {
+    console.info('DATA', super.data);
     return _.findIndex(super.data, (data) => data[FIRE_KEY] === key)
   };
 
-  conf () {
-    return {
-      get(obj, key) {
-        let base = obj[key];
-        if(key in obj && typeof key !== 'symbol' && !isNaN(key)) {
-          return base.value;
-        }
-        return base;
-      }
+  getProperty(getPath, basePath, obj, key) {
+    let base = obj[key];
+    this.subscribeProperty(getPath, obj, key);
+    if(key in obj && typeof key !== 'symbol' && !isNaN(key)) {
+      return base.value;
     }
+    return base;
+  }
+
+  keys () {
+    return this.data.map(d => d[FIRE_KEY]);
   }
 }
 

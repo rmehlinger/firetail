@@ -18,7 +18,7 @@ let app = firebase.initializeApp({
 });
 let db = app.database();
 
-Error.stackTraceLimit = 10;
+Error.stackTraceLimit = 11;
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000;
 
 process.on('unhandledRejection', (reason, p) => {
@@ -234,6 +234,21 @@ describe('RWFireTailList', () => {
       }, 100);
     }, 100);
   });
+  it('should emit changes', (done) => {
+    let catsCell = rx.bind(() => peopleCell.data);
+    fieldKey.set('cats2');
+    setTimeout(() => {
+      expect(Object.values(catsCell.raw())).toEqual([{name: "Maple", id: 0, age: 2}]);
+      cats.push().set({name: 'Molly', age: 18, id: 1});
+      setTimeout(() => {
+        expect(Object.values(catsCell.raw())).toEqual([
+          {name: "Maple", id: 0, age: 2},
+          {name: 'Molly', age: 18, id: 1}
+        ]);
+        done();
+      }, 100);
+    }, 100);
+  });
 });
 
 describe('primitives', () => {
@@ -371,6 +386,24 @@ describe("DepSyncArray", () => {
           done();
         }, 100);
       });
+    }, 100);
+  });
+  it('should update and emit change events correctly', (done) => {
+    let valsCell = rx.bind(() => readArray.data);
+    expect(valsCell.raw()).toEqual([5, 6, 7, 8, 9]);
+    values.push().set(10);
+    setTimeout(() => {
+      expect(valsCell.raw()).toEqual([6, 7, 8, 9, 10]);
+      values.push().set(12);
+      setTimeout(() => {
+        expect(valsCell.raw()).toEqual([7, 8, 9, 10, 12]);
+        let key = readArray.keys()[3];
+        values.update({[key]: 11});
+        setTimeout(() => {
+          expect(valsCell.raw()).toEqual([7, 8, 9, 11, 12]);
+          done();
+        }, 100)
+      }, 100);
     }, 100);
   });
 });

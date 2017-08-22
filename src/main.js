@@ -113,12 +113,9 @@ export class RWFireTailList extends RWFireTailBase {
   }
 }
 
-let FIRE_KEY = Symbol("fire_key");
-
 class BaseSyncArray extends FireTailBase {
   constructor(refFn, init=[]) {
     super(refFn, init);
-    this._valuesPlucked = new Proxy(super.data, this.conf());
 
     autoSub(this.refCell.onSet, ([o, n]) => {
       if(o) {o.off();}
@@ -127,6 +124,7 @@ class BaseSyncArray extends FireTailBase {
       // this dance is necessary to handle primitives while keeping their key associated with them
     });
   }
+
   _monit (event, method) {
     this.refCell.raw().on(event, method.bind(this));
   };
@@ -140,7 +138,7 @@ class BaseSyncArray extends FireTailBase {
 
   _serverAdd (snap, prevId) {
     this._reloading(() => {
-      let data = {value: snap.val(), [FIRE_KEY]: snap.key};
+      let data = {value: snap.val(), key: snap.key};
       this._moveTo(data, prevId);
     });
   };
@@ -149,7 +147,7 @@ class BaseSyncArray extends FireTailBase {
     this._reloading(() => {
       let pos = this.posByKey(snap.key);
       if( pos !== -1 ) {
-        super.data.splice(pos, 1);
+        this._data.value.splice(pos, 1);
       }
     });
   };
@@ -158,7 +156,7 @@ class BaseSyncArray extends FireTailBase {
     this._reloading(() => {
       let pos = this.posByKey(snap.key);
       if( pos !== -1 ) {
-        this.data[pos] = {key: snap.key, value: snap.val()};
+        this._data.value[pos] = {key: snap.key, value: snap.val()};
       }
     });
   };
@@ -168,32 +166,27 @@ class BaseSyncArray extends FireTailBase {
       let id = snap.key;
       let oldPos = this.posByKey(id);
       if( oldPos !== -1 ) {
-        let data = this.data[oldPos];
-        this.data.splice(oldPos, 1);
-        this._moveTo(id, data, prevId);
+        this._data.value.splice(oldPos, 1);
+        this._moveTo({value: snap.val(), key: snap.key}, prevId);
       }
     });
   };
 
   _moveTo (data, prevId) {
     let pos = this.posByKey(prevId);
-    super.data.splice(pos, 0, data);
+    this._data.value.splice(pos + 1, 0, data);
   };
 
   posByKey (key) {
-    return _.findIndex(super.data, (data) => data[FIRE_KEY] === key)
+    return _.findIndex(this._data.value, (data) => data.key === key)
   };
 
-  conf () {
-    return {
-      get(obj, key) {
-        let base = obj[key];
-        if(key in obj && typeof key !== 'symbol' && !isNaN(key)) {
-          return base.value;
-        }
-        return base;
-      }
-    }
+  keys () {
+    return this._data.value.map(d => d.key);
+  }
+
+  get data() {
+    return _.pluck(this._data.value, 'value');
   }
 }
 
@@ -201,8 +194,5 @@ export class DepSyncArray extends BaseSyncArray {
   constructor(refFn, init) {
     super(refFn, init || []);
     this._makeReadOnly();
-  }
-  get data() {
-    return this._valuesPlucked;
   }
 }

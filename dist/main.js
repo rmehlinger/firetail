@@ -28,12 +28,6 @@
     };
   }
 
-  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
-    return typeof obj;
-  } : function (obj) {
-    return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-  };
-
   function _defineProperty(obj, key, value) {
     if (key in obj) {
       Object.defineProperty(obj, key, {
@@ -390,8 +384,6 @@
     return RWFireTailList;
   }(RWFireTailBase);
 
-  var FIRE_KEY = Symbol("fire_key");
-
   var BaseSyncArray = function (_FireTailBase3) {
     _inherits(BaseSyncArray, _FireTailBase3);
 
@@ -401,8 +393,6 @@
       _classCallCheck(this, BaseSyncArray);
 
       var _this14 = _possibleConstructorReturn(this, (BaseSyncArray.__proto__ || Object.getPrototypeOf(BaseSyncArray)).call(this, refFn, init));
-
-      _this14._valuesPlucked = new Proxy(_get(BaseSyncArray.prototype.__proto__ || Object.getPrototypeOf(BaseSyncArray.prototype), 'data', _this14), _this14.conf());
 
       (0, _bobtailRx.autoSub)(_this14.refCell.onSet, function (_ref7) {
         var _ref8 = _slicedToArray(_ref7, 2),
@@ -438,7 +428,7 @@
         var _this15 = this;
 
         this._reloading(function () {
-          var data = _defineProperty({ value: snap.val() }, FIRE_KEY, snap.key);
+          var data = { value: snap.val(), key: snap.key };
           _this15._moveTo(data, prevId);
         });
       }
@@ -450,7 +440,7 @@
         this._reloading(function () {
           var pos = _this16.posByKey(snap.key);
           if (pos !== -1) {
-            _get(BaseSyncArray.prototype.__proto__ || Object.getPrototypeOf(BaseSyncArray.prototype), 'data', _this16).splice(pos, 1);
+            _this16._data.value.splice(pos, 1);
           }
         });
       }
@@ -462,7 +452,7 @@
         this._reloading(function () {
           var pos = _this17.posByKey(snap.key);
           if (pos !== -1) {
-            _this17.data[pos] = { key: snap.key, value: snap.val() };
+            _this17._data.value[pos] = { key: snap.key, value: snap.val() };
           }
         });
       }
@@ -475,9 +465,8 @@
           var id = snap.key;
           var oldPos = _this18.posByKey(id);
           if (oldPos !== -1) {
-            var data = _this18.data[oldPos];
-            _this18.data.splice(oldPos, 1);
-            _this18._moveTo(id, data, prevId);
+            _this18._data.value.splice(oldPos, 1);
+            _this18._moveTo({ value: snap.val(), key: snap.key }, prevId);
           }
         });
       }
@@ -485,27 +474,26 @@
       key: '_moveTo',
       value: function _moveTo(data, prevId) {
         var pos = this.posByKey(prevId);
-        _get(BaseSyncArray.prototype.__proto__ || Object.getPrototypeOf(BaseSyncArray.prototype), 'data', this).splice(pos, 0, data);
+        this._data.value.splice(pos + 1, 0, data);
       }
     }, {
       key: 'posByKey',
       value: function posByKey(key) {
-        return _underscore2.default.findIndex(_get(BaseSyncArray.prototype.__proto__ || Object.getPrototypeOf(BaseSyncArray.prototype), 'data', this), function (data) {
-          return data[FIRE_KEY] === key;
+        return _underscore2.default.findIndex(this._data.value, function (data) {
+          return data.key === key;
         });
       }
     }, {
-      key: 'conf',
-      value: function conf() {
-        return {
-          get: function get(obj, key) {
-            var base = obj[key];
-            if (key in obj && (typeof key === 'undefined' ? 'undefined' : _typeof(key)) !== 'symbol' && !isNaN(key)) {
-              return base.value;
-            }
-            return base;
-          }
-        };
+      key: 'keys',
+      value: function keys() {
+        return this._data.value.map(function (d) {
+          return d.key;
+        });
+      }
+    }, {
+      key: 'data',
+      get: function get() {
+        return _underscore2.default.pluck(this._data.value, 'value');
       }
     }]);
 
@@ -523,13 +511,6 @@
       _this19._makeReadOnly();
       return _this19;
     }
-
-    _createClass(DepSyncArray, [{
-      key: 'data',
-      get: function get() {
-        return this._valuesPlucked;
-      }
-    }]);
 
     return DepSyncArray;
   }(BaseSyncArray);

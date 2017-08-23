@@ -1,4 +1,4 @@
-import {autoSub, bind, array, transaction} from 'bobtail-rx';
+import {autoSub, bind, snap, transaction} from 'bobtail-rx';
 import {ObsJsonCell, DepJsonCell} from 'bobtail-json-cell';
 import _ from 'underscore';
 import safeSet from 'lodash.set';
@@ -44,9 +44,11 @@ class FireTailBase extends ObsJsonCell {
   _reloading(f) {
     let _wasReloading = this._nowReloading;
     this._nowReloading = true;
-    try {this._updating(f)} finally {
-      this._nowReloading = _wasReloading;
-    }
+    transaction(() => {
+      try {this._updating(f)} finally {
+        this._nowReloading = _wasReloading;
+      }
+    });
   }
 }
 
@@ -121,7 +123,6 @@ class BaseSyncArray extends FireTailBase {
       if(o) {o.off();}
 
       this._initListeners();
-      // this dance is necessary to handle primitives while keeping their key associated with them
     });
   }
 
@@ -147,6 +148,7 @@ class BaseSyncArray extends FireTailBase {
     this._reloading(() => {
       let pos = this.posByKey(snap.key);
       if( pos !== -1 ) {
+        let len = this._data.value.length;
         this._data.value.splice(pos, 1);
       }
     });
@@ -182,7 +184,15 @@ class BaseSyncArray extends FireTailBase {
   };
 
   keys () {
-    return this._data.value.map(d => d.key);
+    return _.pluck(this._data.value, 'key');
+  }
+
+  object () {
+    return _.object(_.zip(this.keys(), this.data));
+  }
+
+  raw () {
+    return snap(() => this.data);
   }
 
   get data() {

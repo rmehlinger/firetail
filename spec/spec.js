@@ -388,7 +388,7 @@ describe("DepSyncArray", () => {
       });
     }, 100);
   });
-  it('should update and emit change events correctly', (done) => {
+  it('should update and emit change events correctly', done => {
     let valsCell = rx.bind(() => readArray.data);
     expect(valsCell.raw()).toEqual([5, 6, 7, 8, 9]);
     values.push().set(10);
@@ -405,5 +405,14 @@ describe("DepSyncArray", () => {
         }, 100)
       }, 100);
     }, 100);
+  });
+  fit('should handle removals correctly', done => {
+    let valsCell = rx.bind(() => readArray.data);
+    rx.autoSub(valsCell.onSet, ([o, n]) => {
+      expect(valsCell.raw()).not.toContain(undefined);
+      expect(valsCell.raw()).toEqual(readArray.data);
+    });
+    values.update({[readArray.keys()[0]]: null});
+    setTimeout(done, 100);
   });
 });

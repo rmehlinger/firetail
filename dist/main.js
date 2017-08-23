@@ -244,13 +244,17 @@
     }, {
       key: '_reloading',
       value: function _reloading(f) {
+        var _this8 = this;
+
         var _wasReloading = this._nowReloading;
         this._nowReloading = true;
-        try {
-          this._updating(f);
-        } finally {
-          this._nowReloading = _wasReloading;
-        }
+        (0, _bobtailRx.transaction)(function () {
+          try {
+            _this8._updating(f);
+          } finally {
+            _this8._nowReloading = _wasReloading;
+          }
+        });
       }
     }]);
 
@@ -261,12 +265,12 @@
     _inherits(DepFireTailBase, _FireTailBase);
 
     function DepFireTailBase() {
-      var _this8;
+      var _this9;
 
       _classCallCheck(this, DepFireTailBase);
 
-      (_this8 = _possibleConstructorReturn(this, (DepFireTailBase.__proto__ || Object.getPrototypeOf(DepFireTailBase)).apply(this, arguments)), _this8)._makeReadOnly();
-      return _this8;
+      (_this9 = _possibleConstructorReturn(this, (DepFireTailBase.__proto__ || Object.getPrototypeOf(DepFireTailBase)).apply(this, arguments)), _this9)._makeReadOnly();
+      return _this9;
     }
 
     return DepFireTailBase;
@@ -280,10 +284,10 @@
 
       _classCallCheck(this, DepFireTailCell);
 
-      var _this9 = _possibleConstructorReturn(this, (DepFireTailCell.__proto__ || Object.getPrototypeOf(DepFireTailCell)).call(this, refFn, init));
+      var _this10 = _possibleConstructorReturn(this, (DepFireTailCell.__proto__ || Object.getPrototypeOf(DepFireTailCell)).call(this, refFn, init));
 
-      (0, _bobtailRx.autoSub)(_this9.refCell.onSet, initCell.bind(_this9));
-      return _this9;
+      (0, _bobtailRx.autoSub)(_this10.refCell.onSet, initCell.bind(_this10));
+      return _this10;
     }
 
     return DepFireTailCell;
@@ -295,10 +299,10 @@
     function DepFireTailList(refFn, init) {
       _classCallCheck(this, DepFireTailList);
 
-      var _this10 = _possibleConstructorReturn(this, (DepFireTailList.__proto__ || Object.getPrototypeOf(DepFireTailList)).call(this, refFn, init || {}));
+      var _this11 = _possibleConstructorReturn(this, (DepFireTailList.__proto__ || Object.getPrototypeOf(DepFireTailList)).call(this, refFn, init || {}));
 
-      (0, _bobtailRx.autoSub)(_this10.refCell.onSet, initList.bind(_this10));
-      return _this10;
+      (0, _bobtailRx.autoSub)(_this11.refCell.onSet, initList.bind(_this11));
+      return _this11;
     }
 
     return DepFireTailList;
@@ -351,10 +355,10 @@
     function RWFireTailCell(refFn, init) {
       _classCallCheck(this, RWFireTailCell);
 
-      var _this12 = _possibleConstructorReturn(this, (RWFireTailCell.__proto__ || Object.getPrototypeOf(RWFireTailCell)).call(this, refFn, init));
+      var _this13 = _possibleConstructorReturn(this, (RWFireTailCell.__proto__ || Object.getPrototypeOf(RWFireTailCell)).call(this, refFn, init));
 
-      (0, _bobtailRx.autoSub)(_this12.refCell.onSet, initCell.bind(_this12));
-      return _this12;
+      (0, _bobtailRx.autoSub)(_this13.refCell.onSet, initCell.bind(_this13));
+      return _this13;
     }
 
     return RWFireTailCell;
@@ -366,10 +370,10 @@
     function RWFireTailList(refFn, init) {
       _classCallCheck(this, RWFireTailList);
 
-      var _this13 = _possibleConstructorReturn(this, (RWFireTailList.__proto__ || Object.getPrototypeOf(RWFireTailList)).call(this, refFn, init || {}));
+      var _this14 = _possibleConstructorReturn(this, (RWFireTailList.__proto__ || Object.getPrototypeOf(RWFireTailList)).call(this, refFn, init || {}));
 
-      (0, _bobtailRx.autoSub)(_this13.refCell.onSet, initList.bind(_this13));
-      return _this13;
+      (0, _bobtailRx.autoSub)(_this14.refCell.onSet, initList.bind(_this14));
+      return _this14;
     }
 
     _createClass(RWFireTailList, [{
@@ -392,9 +396,9 @@
 
       _classCallCheck(this, BaseSyncArray);
 
-      var _this14 = _possibleConstructorReturn(this, (BaseSyncArray.__proto__ || Object.getPrototypeOf(BaseSyncArray)).call(this, refFn, init));
+      var _this15 = _possibleConstructorReturn(this, (BaseSyncArray.__proto__ || Object.getPrototypeOf(BaseSyncArray)).call(this, refFn, init));
 
-      (0, _bobtailRx.autoSub)(_this14.refCell.onSet, function (_ref7) {
+      (0, _bobtailRx.autoSub)(_this15.refCell.onSet, function (_ref7) {
         var _ref8 = _slicedToArray(_ref7, 2),
             o = _ref8[0],
             n = _ref8[1];
@@ -403,10 +407,9 @@
           o.off();
         }
 
-        _this14._initListeners();
-        // this dance is necessary to handle primitives while keeping their key associated with them
+        _this15._initListeners();
       });
-      return _this14;
+      return _this15;
     }
 
     _createClass(BaseSyncArray, [{
@@ -425,48 +428,49 @@
     }, {
       key: '_serverAdd',
       value: function _serverAdd(snap, prevId) {
-        var _this15 = this;
+        var _this16 = this;
 
         this._reloading(function () {
           var data = { value: snap.val(), key: snap.key };
-          _this15._moveTo(data, prevId);
+          _this16._moveTo(data, prevId);
         });
       }
     }, {
       key: '_serverRemove',
       value: function _serverRemove(snap) {
-        var _this16 = this;
+        var _this17 = this;
 
         this._reloading(function () {
-          var pos = _this16.posByKey(snap.key);
+          var pos = _this17.posByKey(snap.key);
           if (pos !== -1) {
-            _this16._data.value.splice(pos, 1);
+            var len = _this17._data.value.length;
+            _this17._data.value.splice(pos, 1);
           }
         });
       }
     }, {
       key: '_serverChange',
       value: function _serverChange(snap) {
-        var _this17 = this;
+        var _this18 = this;
 
         this._reloading(function () {
-          var pos = _this17.posByKey(snap.key);
+          var pos = _this18.posByKey(snap.key);
           if (pos !== -1) {
-            _this17._data.value[pos] = { key: snap.key, value: snap.val() };
+            _this18._data.value[pos] = { key: snap.key, value: snap.val() };
           }
         });
       }
     }, {
       key: '_serverMove',
       value: function _serverMove(snap, prevId) {
-        var _this18 = this;
+        var _this19 = this;
 
         this._reloading(function () {
           var id = snap.key;
-          var oldPos = _this18.posByKey(id);
+          var oldPos = _this19.posByKey(id);
           if (oldPos !== -1) {
-            _this18._data.value.splice(oldPos, 1);
-            _this18._moveTo({ value: snap.val(), key: snap.key }, prevId);
+            _this19._data.value.splice(oldPos, 1);
+            _this19._moveTo({ value: snap.val(), key: snap.key }, prevId);
           }
         });
       }
@@ -486,8 +490,20 @@
     }, {
       key: 'keys',
       value: function keys() {
-        return this._data.value.map(function (d) {
-          return d.key;
+        return _underscore2.default.pluck(this._data.value, 'key');
+      }
+    }, {
+      key: 'object',
+      value: function object() {
+        return _underscore2.default.object(_underscore2.default.zip(this.keys(), this.data));
+      }
+    }, {
+      key: 'raw',
+      value: function raw() {
+        var _this20 = this;
+
+        return (0, _bobtailRx.snap)(function () {
+          return _this20.data;
         });
       }
     }, {
@@ -506,10 +522,10 @@
     function DepSyncArray(refFn, init) {
       _classCallCheck(this, DepSyncArray);
 
-      var _this19 = _possibleConstructorReturn(this, (DepSyncArray.__proto__ || Object.getPrototypeOf(DepSyncArray)).call(this, refFn, init || []));
+      var _this21 = _possibleConstructorReturn(this, (DepSyncArray.__proto__ || Object.getPrototypeOf(DepSyncArray)).call(this, refFn, init || []));
 
-      _this19._makeReadOnly();
-      return _this19;
+      _this21._makeReadOnly();
+      return _this21;
     }
 
     return DepSyncArray;

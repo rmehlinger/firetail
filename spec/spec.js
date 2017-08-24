@@ -401,7 +401,11 @@ describe("DepSyncArray", () => {
         values.update({[key]: 11});
         setTimeout(() => {
           expect(valsCell.raw()).toEqual([7, 8, 9, 11, 12]);
-          done();
+          values.update({[readArray.keys()[0]]: null});
+          setTimeout(() => {
+            expect(valsCell.raw()).toEqual([6, 8, 9, 11, 12]);
+            done();
+          }, 100);
         }, 100)
       }, 100);
     }, 100);

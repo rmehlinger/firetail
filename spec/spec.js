@@ -410,7 +410,7 @@ describe("DepSyncArray", () => {
       }, 100);
     }, 100);
   });
-  fit('should handle removals correctly', done => {
+  it('should handle removals correctly', done => {
     let valsCell = rx.bind(() => readArray.data);
     rx.autoSub(valsCell.onSet, ([o, n]) => {
       expect(valsCell.raw()).not.toContain(undefined);
@@ -419,4 +419,24 @@ describe("DepSyncArray", () => {
     values.update({[readArray.keys()[0]]: null});
     setTimeout(done, 100);
   });
+});
+
+describe("Arraylike", () => {
+  let values, readCell;
+  beforeEach(done => {
+    values = db.ref('maptest');
+    values.set({foo: [1,2,3,4,5]});
+    setTimeout(() => {
+      readCell = new DepFireTailCell(values);
+      done();
+    }, 100);
+  });
+  it('should map in a bind', done => {
+    let valsCell = rx.bind(() => readCell.data.foo.map(_.identity));
+    setTimeout(() => {
+      expect(readCell.data.foo.map(_.identity)).toEqual([1,2,3,4,5]);
+      expect(valsCell.raw()).toEqual([1,2,3,4,5]);
+      done()
+    }, 100);
+  })
 });

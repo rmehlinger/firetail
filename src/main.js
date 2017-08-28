@@ -93,7 +93,7 @@ class RWFireTailBase extends FireTailBase {
     return true;
   }
   set data(val) {this._update(val);}
-  get data() {return this._data.value;}
+  get data() {return this._proxify().value;}
 }
 
 export class RWFireTailCell extends RWFireTailBase {
@@ -148,8 +148,7 @@ class BaseSyncArray extends FireTailBase {
     this._reloading(() => {
       let pos = this.posByKey(snap.key);
       if( pos !== -1 ) {
-        let len = this._data.value.length;
-        this._data.value.splice(pos, 1);
+        this._proxify().value.splice(pos, 1);
       }
     });
   };
@@ -158,7 +157,7 @@ class BaseSyncArray extends FireTailBase {
     this._reloading(() => {
       let pos = this.posByKey(snap.key);
       if( pos !== -1 ) {
-        this._data.value[pos] = {key: snap.key, value: snap.val()};
+        this._proxify().value[pos] = {key: snap.key, value: snap.val()};
       }
     });
   };
@@ -168,7 +167,7 @@ class BaseSyncArray extends FireTailBase {
       let id = snap.key;
       let oldPos = this.posByKey(id);
       if( oldPos !== -1 ) {
-        this._data.value.splice(oldPos, 1);
+        this._proxify().value.splice(oldPos, 1);
         this._moveTo({value: snap.val(), key: snap.key}, prevId);
       }
     });
@@ -176,15 +175,15 @@ class BaseSyncArray extends FireTailBase {
 
   _moveTo (data, prevId) {
     let pos = this.posByKey(prevId);
-    this._data.value.splice(pos + 1, 0, data);
+    this._proxify().value.splice(pos + 1, 0, data);
   };
 
   posByKey (key) {
-    return _.findIndex(this._data.value, (data) => data.key === key)
+    return _.findIndex(this._proxify().value, (data) => data.key === key)
   };
 
   keys () {
-    return _.pluck(this._data.value, 'key');
+    return _.pluck(this._proxify().value, 'key');
   }
 
   object () {
@@ -196,7 +195,7 @@ class BaseSyncArray extends FireTailBase {
   }
 
   get data() {
-    return _.pluck(this._data.value, 'value');
+    return _.pluck(this._proxify().value, 'value');
   }
 }
 

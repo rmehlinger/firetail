@@ -342,7 +342,7 @@
         this._update(val);
       },
       get: function get() {
-        return this._data.value;
+        return this._proxify().value;
       }
     }]);
 
@@ -443,8 +443,7 @@
         this._reloading(function () {
           var pos = _this17.posByKey(snap.key);
           if (pos !== -1) {
-            var len = _this17._data.value.length;
-            _this17._data.value.splice(pos, 1);
+            _this17._proxify().value.splice(pos, 1);
           }
         });
       }
@@ -456,7 +455,7 @@
         this._reloading(function () {
           var pos = _this18.posByKey(snap.key);
           if (pos !== -1) {
-            _this18._data.value[pos] = { key: snap.key, value: snap.val() };
+            _this18._proxify().value[pos] = { key: snap.key, value: snap.val() };
           }
         });
       }
@@ -469,7 +468,7 @@
           var id = snap.key;
           var oldPos = _this19.posByKey(id);
           if (oldPos !== -1) {
-            _this19._data.value.splice(oldPos, 1);
+            _this19._proxify().value.splice(oldPos, 1);
             _this19._moveTo({ value: snap.val(), key: snap.key }, prevId);
           }
         });
@@ -478,19 +477,19 @@
       key: '_moveTo',
       value: function _moveTo(data, prevId) {
         var pos = this.posByKey(prevId);
-        this._data.value.splice(pos + 1, 0, data);
+        this._proxify().value.splice(pos + 1, 0, data);
       }
     }, {
       key: 'posByKey',
       value: function posByKey(key) {
-        return _underscore2.default.findIndex(this._data.value, function (data) {
+        return _underscore2.default.findIndex(this._proxify().value, function (data) {
           return data.key === key;
         });
       }
     }, {
       key: 'keys',
       value: function keys() {
-        return _underscore2.default.pluck(this._data.value, 'key');
+        return _underscore2.default.pluck(this._proxify().value, 'key');
       }
     }, {
       key: 'object',
@@ -509,7 +508,7 @@
     }, {
       key: 'data',
       get: function get() {
-        return _underscore2.default.pluck(this._data.value, 'value');
+        return _underscore2.default.pluck(this._proxify().value, 'value');
       }
     }]);
 
